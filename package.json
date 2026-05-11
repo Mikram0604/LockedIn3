@@ -1,0 +1,25 @@
+{
+  "name": "disha",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.1",
+    "@supabase/supabase-js": "^2.105.4",
+    "chromadb": "^3.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "llamaindex": "^0.12.1",
+    "node-cron": "^4.2.1",
+    "pdf-parse": "^2.4.5",
+    "twilio": "^6.0.2"
+  }
+}
