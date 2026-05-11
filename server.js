@@ -39,8 +39,40 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'Disha API' });
 });
 
+// Twilio WhatsApp webhook
+app.post('/webhook', async (req, res) => {
+  console.log('--- WEBHOOK HIT ---');
+  const { Body, From } = req.body;
+  if (!Body || !From) {
+    res.status(200).send('<Response></Response>');
+    return;
+  }
+  const phone = From.replace('whatsapp:', '');
+  const message = Body.trim();
+  console.log(`WhatsApp from ${phone}: "${message}"`);
+
+  // Use the same chat logic
+  try {
+    const fakeRes = { jsonData: null, json: function(d) { this.jsonData = d; } };
+    const fakeReq = { body: { message, phone } };
+    
+    // Call the chat handler manually
+    await chatHandler(fakeReq, fakeRes);
+    
+    const reply = fakeRes.jsonData?.reply || "I'm here to help! Try asking about scholarships.";
+    
+    // Send reply via Twilio
+    const { sendWhatsAppMessage } = require('./services/twilio');
+    await sendWhatsAppMessage(phone, reply);
+    console.log(`Reply sent to ${phone}`);
+  } catch (err) {
+    console.error('Webhook error:', err);
+  }
+  res.status(200).send('<Response></Response>');
+});
+
 // Chat API endpoint (replaces Twilio webhook for demo)
-app.post('/api/chat', async (req, res) => {
+async function chatHandler(req, res) {
   const { message, phone } = req.body;
   if (!message || !phone) {
     return res.json({ reply: "Please send a message." });
@@ -147,7 +179,8 @@ Available scholarships: ${JSON.stringify(scholarshipsData)}`;
     console.error('Chat error:', error);
     return res.json({ reply: "I'm here to help you with scholarships, fees, and college guidance. Try asking me about scholarships or deadlines!" });
   }
-});
+}
+app.post('/api/chat', chatHandler);
 
 // API for dashboard demo data
 app.get('/api/students', (req, res) => {
