@@ -39,36 +39,33 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'Disha API' });
 });
 
-// Twilio WhatsApp webhook
-app.post('/webhook', async (req, res) => {
-  console.log('--- WEBHOOK HIT ---');
+// Twilio WhatsApp webhook - responds immediately, processes async
+app.post('/webhook', (req, res) => {
+  // Respond to Twilio IMMEDIATELY so it doesn't timeout
+  res.status(200).send('<Response></Response>');
+
   const { Body, From } = req.body;
-  if (!Body || !From) {
-    res.status(200).send('<Response></Response>');
-    return;
-  }
+  if (!Body || !From) return;
+
   const phone = From.replace('whatsapp:', '');
   const message = Body.trim();
-  console.log(`WhatsApp from ${phone}: "${message}"`);
+  console.log(`--- WEBHOOK: ${phone}: "${message}" ---`);
 
-  // Use the same chat logic
-  try {
-    const fakeRes = { jsonData: null, json: function(d) { this.jsonData = d; } };
-    const fakeReq = { body: { message, phone } };
-    
-    // Call the chat handler manually
-    await chatHandler(fakeReq, fakeRes);
-    
-    const reply = fakeRes.jsonData?.reply || "I'm here to help! Try asking about scholarships.";
-    
-    // Send reply via Twilio
-    const { sendWhatsAppMessage } = require('./services/twilio');
-    await sendWhatsAppMessage(phone, reply);
-    console.log(`Reply sent to ${phone}`);
-  } catch (err) {
-    console.error('Webhook error:', err);
-  }
-  res.status(200).send('<Response></Response>');
+  // Process async (don't block the response)
+  setImmediate(async () => {
+    try {
+      const fakeRes = { jsonData: null, json: function(d) { this.jsonData = d; } };
+      await chatHandler({ body: { message, phone } }, fakeRes);
+      
+      const reply = fakeRes.jsonData?.reply || "I'm here to help! Try asking about scholarships.";
+      
+      const { sendWhatsAppMessage } = require('./services/twilio');
+      await sendWhatsAppMessage(phone, reply);
+      console.log(`Reply sent to ${phone}`);
+    } catch (err) {
+      console.error('Webhook error:', err);
+    }
+  });
 });
 
 // Chat API endpoint (replaces Twilio webhook for demo)

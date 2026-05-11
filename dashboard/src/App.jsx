@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Bell, Users, ShieldAlert, Activity, Search, Send, MessageCircle, ChevronRight, Phone, MoreVertical, Check, CheckCheck } from 'lucide-react';
 
-const API_URL = 'http://localhost:5005';
+const API_URL = 'https://lockedin3-production.up.railway.app';
 
 function App() {
   return (
